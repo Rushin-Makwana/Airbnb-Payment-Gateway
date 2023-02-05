@@ -4,16 +4,15 @@ const qs = require("querystring");
 const checksum_lib = require("./Paytm/checksum");
 const config = require("./Paytm/config");
 const cors = require('cors')
-let dotenv = require('dotenv');
-dotenv.config();
+
 const app = express();
-app.use(cors());
+app.use(cors())
 const parseUrl = express.urlencoded({ extended: false });
 const parseJson = express.json({ extended: false });
 app.set('views','./views')
 app.set('view engine','ejs')
 
-const PORT =  process.env.PORT || 3000;
+const PORT =  4100;
 
 app.get('/',(req,res) => {
   res.render('index')
@@ -23,17 +22,17 @@ app.post("/paynow", [parseUrl, parseJson], (req, res) => {
   // Route for making payment
   console.log(">>>>",req.body)
   var paymentDetails = {
-    orderID: Math.floor(Math.random()*10000),
+    orderID: Math.random()*10000,
     amount: req.body.price,
     customerId: req.body.name,
     customerEmail: req.body.email,
     customerPhone: req.body.phone,
     customerRest: req.body.location_name
 }
-if(!paymentDetails.amount || !paymentDetails.customerEmail || !paymentDetails.customerPhone ) {
-  res.status(400).send('Payment failed')        
+if(!paymentDetails.amount || !paymentDetails.customerId || !paymentDetails.customerEmail || !paymentDetails.customerPhone ) {
+  res.status(400).send('Payment failed')
 } else {
-    var params = {}; var u  ="https://airbnb-paynow.herokuapp.com/callback";
+    var params = {};
     params['MID'] = config.PaytmConfig.mid;
     params['WEBSITE'] = config.PaytmConfig.website;
     params['CHANNEL_ID'] = 'WEB';
@@ -42,13 +41,13 @@ if(!paymentDetails.amount || !paymentDetails.customerEmail || !paymentDetails.cu
     params['CUST_ID'] = paymentDetails.customerId;
     params['TXN_AMOUNT'] = paymentDetails.amount;
     /* where is app is hosted (heroku url)*/
-    params['CALLBACK_URL'] = u;
+    params['CALLBACK_URL'] = 'https://airbnb-paynow-herokuapp-com.onrender.com/callback';
     params['EMAIL'] = paymentDetails.customerEmail;
     params['MOBILE_NO'] = paymentDetails.customerPhone;
   
 
     checksum_lib.genchecksum(params, config.PaytmConfig.key, function (err, checksum) {
-        var txn_url = "https://securegw-stage.paytm.in/theia/processTransaction"; // for 
+        var txn_url = "https://securegw-stage.paytm.in/theia/processTransaction"; // for staging
         // var txn_url = "https://securegw.paytm.in/theia/processTransaction"; // for production
 
         var form_fields = "";
